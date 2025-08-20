@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Générateur de Facture</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 800px;
+      margin-top: 40px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .table th, .table td {
+      vertical-align: middle;
+    }
+    .btn-add {
+      margin-top: 10px;
+    }
+    .total-display {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-4">🧾 Générateur de Facture</h1>
+
+    <form id="invoiceForm">
+      <div class="mb-3">
+        <label class="form-label">Nom du client</label>
+        <input type="text" class="form-control" id="clientName">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Adresse</label>
+        <input type="text" class="form-control" id="clientAddress">
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-control" id="invoiceDate">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Numéro de facture</label>
+          <input type="text" class="form-control" id="invoiceNumber" placeholder="Ex: F2025-001">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">TVA (%)</label>
+        <input type="number" class="form-control" id="tvaRate" value="20">
+      </div>
+
+      <h4 class="mt-4">🛒 Produits / Services</h4>
+      <table class="table table-bordered mt-2" id="itemsTable">
+        <thead class="table-light">
+          <tr>
+            <th>Description</th>
+            <th>Quantité</th>
+            <th>Prix Unitaire (€)</th>
+            <th>Total (€)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" class="btn btn-outline-primary btn-add" onclick="addItem()">➕ Ajouter une ligne</button>
+
+      <div class="total-display" id="totalDisplay">Total: 0.00 €</div>
+
+      <div class="text-center mt-4">
+        <button type="button" class="btn btn-success" onclick="generatePDF()">📤 Générer PDF</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function addItem() {
+      const table = document.querySelector("#itemsTable tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="form-control" onchange="updateTotal()"></td>
+        <td><input type="number" class="form-control" value="1" onchange="updateTotal()"></td>
+        <td><input type="number" class="form-control" value="0" onchange="updateTotal()"></td>
+        <td class="lineTotal text-end">0.00</td>
+      `;
+      table.appendChild(row);
+    }
+
+    function updateTotal() {
+      let total = 0;
+      document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+        const qty = parseFloat(row.children[1].children[0].value) || 0;
+        const price = parseFloat(row.children[2].children[0].value) || 0;
+        const lineTotal = qty * price;
+        row.children[3].textContent = lineTotal.toFixed(2);
+        total += lineTotal;
+      });
+      document.getElementById("totalDisplay").textContent = `Total: ${total.toFixed(2)} €`;
+    }
+
+    function generatePDF() {
+      const data = {
+        client: document.getElementById("clientName").value,
+        adresse: document.getElementById("clientAddress").value,
+        date: document.getElementById("invoiceDate").value,
+        numero: document.getElementById("invoiceNumber").value,
+        tva: parseFloat(document.getElementById("tvaRate").value) / 100,
+        articles: []
+      };
+
+      document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+        const description = row.children[0].children[0].value;
+        const quantite = parseFloat(row.children[1].children[0].value);
+        const prix = parseFloat(row.children[2].children[0].value);
+        data.articles.push({ description, quantite, prix });
+      });
+
+      fetch("/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "facture.pdf";
+        a.click();
+      });
+    }
+  </script>
+</body>
+</html>
