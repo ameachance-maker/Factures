@@ -1,0 +1,5 @@
+fpdf2
+qrcode[pil]
+flask
+qrcode 
+pillow
