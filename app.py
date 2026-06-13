@@ -8,11 +8,13 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Liste de produits en mémoire
+# Liste de vos vrais produits disponibles
 products = [
-    {"name": "Produit Exemple 1", "price": 10.00},
-    {"name": "Produit Exemple 2", "price": 20.00},
-    {"name": "Produit Exemple 3", "price": 30.00},
-    {"name": "Produit Exemple 4", "price": 40.00}
+    {"name": "Tomates (le kg)", "price": 2.50},
+    {"name": "Plantains (le régime)", "price": 5.00},
+    {"name": "Manioc (le kg)", "price": 1.80},
+    {"name": "Ignames (le kg)", "price": 3.00},
+    {"name": "Piment (le sachet)", "price": 1.00}
 ]
 
 @app.route('/')
