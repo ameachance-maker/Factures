@@ -4,11 +4,11 @@ import os
 import qrcode
 import tempfile
 import uuid
+
 app = Flask(__name__)
 
 class FacturePDF(FPDF):
     def header(self):
-        # Logo (remplace par ton logo.png si dispo)
         if os.path.exists("logo.png"):
             self.image("logo.png", 10, 8, 30)
         self.set_font("TypeMachine", "", 20)
@@ -24,11 +24,9 @@ class FacturePDF(FPDF):
 def generer_facture(data, output_path):
     pdf = FacturePDF()
     
-    # Charger ta police AVANT d’ajouter une page
+    # Charger la police avant d'ajouter la page
     pdf.add_font("TypeMachine", "", "Type_Machine.ttf", uni=True)
     pdf.set_font("TypeMachine", "", 12)
-
-    # Maintenant ajouter une page (la police est dispo pour header/footer)
     pdf.add_page()
 
     # --- Bloc Société / Facture Info ---
@@ -97,13 +95,27 @@ def generer_facture(data, output_path):
     pdf.cell(150, 10, "TOTAL TTC", align="R", fill=True)
     pdf.cell(40, 10, f"{total_ttc:.2f} €", align="R", fill=True, ln=1)
 
-    # --- QR Code ---
-    qr_data = f"Facture {data['numero']} - Client: {data['client']} - Total: {total_ttc:.2f} €"
-    qr = qrcode.make(qr_data)
+    # --- QR Code Amélioré ---
+    qr_data = f"Facture: {data['numero']}\nClient: {data['client']}\nTotal TTC: {total_ttc:.2f} EUR"
+    
+    # Configuration du QR code pour un maximum de contraste et de lisibilité mobile
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
     temp_qr = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    qr.save(temp_qr.name)
+    qr_img.save(temp_qr.name)
 
-    pdf.image(temp_qr.name, x=170, y=pdf.get_y() + 15, w=30)
+    # Vérification de l'espace restant pour éviter de casser le QR code sur le footer
+    if pdf.get_y() + 45 > 270: 
+        pdf.add_page()
+        pos_y = 30
+    else:
+        pos_y = pdf.get_y() + 10
+
+    # Insertion avec une taille carrée fixe parfaite (35mm x 35mm)
+    pdf.image(temp_qr.name, x=160, y=pos_y, w=35, h=35)
 
     pdf.output(output_path)
 
@@ -132,12 +144,14 @@ def generate():
             'quantite': int(qty),
             'prix': float(price)
         })
-    a=uuid.uuid4()
-    a = a.hex[:6]
-    output_path = os.path.join(os.getcwd(), f"Factures{a}.pdf")
+        
+    a = uuid.uuid4().hex[:6]
+    output_path = os.path.join(tempfile.gettempdir(), f"Facture_{a}.pdf")
     generer_facture(data, output_path)
 
-    return send_file(output_path, as_attachment=True, mimetype="application/pdf")
+    return send_file(output_path, as_attachment=True, download_name=f"Facture_{data['numero']}.pdf", mimetype="application/pdf")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Configuration requise pour s'adapter dynamiquement aux ports de Render
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
