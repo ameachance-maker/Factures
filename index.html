@@ -3,213 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Facture</title>
+    <title>Générateur de Facture Professionnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="container mx-auto p-6 max-w-4xl">
-        <h1 class="text-3xl font-bold text-center mb-6">🧾 Générateur de Facture</h1>
-        <a href="/admin" class="text-blue-600 hover:underline mb-4 inline-block">Accéder à l'espace admin</a>
+<body class="bg-slate-50 font-sans min-h-screen text-slate-800">
+    <div class="container mx-auto p-4 sm:p-6 max-w-4xl">
         
-        <form id="factureForm" class="bg-white p-6 rounded-lg shadow-md">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>🧾</span> Générateur de Facture
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Créez et téléchargez vos factures instantanément</p>
+            </div>
+            <a href="/admin" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition">
+                ⚙️ Espace Administration
+            </a>
+        </div>
+        
+        <form id="factureForm" class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+            
+            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                👤 Informations Facture & Client
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label for="client" class="block text-sm font-medium text-gray-700">Nom du client</label>
-                    <input type="text" id="client" name="client" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <label for="client" class="block text-sm font-semibold text-slate-700 mb-1">Nom du client</label>
+                    <input type="text" id="client" name="client" placeholder="Ex: Maeva" required 
+                           class="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
                 <div>
-                    <label for="adresse" class="block text-sm font-medium text-gray-700">Adresse</label>
-                    <input type="text" id="adresse" name="adresse" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <label for="adresse" class="block text-sm font-semibold text-slate-700 mb-1">Adresse de facturation</label>
+                    <input type="text" id="adresse" name="adresse" placeholder="Ex: 113 rue de Evaris" required 
+                           class="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div>
-                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
-                    <input type="date" id="date" name="date" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <label for="date" class="block text-sm font-semibold text-slate-700 mb-1">Date d'émission</label>
+                    <input type="date" id="date" name="date" required 
+                           class="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
                 <div>
-                    <label for="numero" class="block text-sm font-medium text-gray-700">Numéro de facture</label>
+                    <label for="numero" class="block text-sm font-semibold text-slate-700 mb-1">Numéro de facture</label>
                     <input type="text" id="numero" name="numero" readonly 
-                           class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-gray-100">
+                           class="w-full border border-slate-200 rounded-xl p-2.5 bg-slate-50 text-slate-500 font-mono text-sm cursor-not-allowed">
+                </div>
+                <div>
+                    <label for="tva" class="block text-sm font-semibold text-slate-700 mb-1">Taux de TVA (%)</label>
+                    <input type="number" id="tva" name="tva" min="0" step="0.1" value="1.0" required 
+                           class="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                 </div>
             </div>
             
-            <div class="mb-4">
-                <label for="tva" class="block text-sm font-medium text-gray-700">TVA (%)</label>
-                <input type="number" id="tva" name="tva" min="0" step="0.1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            </div>
+            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                🛒 Produits / Services
+            </h2>
             
-            <h2 class="text-xl font-semibold mb-4">🛒 Produits / Services</h2>
             <div id="articles" class="space-y-4">
-                <div class="article-row grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <select name="description" class="mt-1 block w-full border border-gray-300 rounded-md p-2 description-select">
-                            <option value="">Sélectionner un produit</option>
+                <div class="article-row grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-slate-100 relative">
+                    <div class="md:col-span-5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Désignation du produit</label>
+                        <select name="description" required class="w-full border border-slate-200 rounded-xl p-2.5 bg-white description-select focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="">Sélectionner un article...</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Quantité</label>
-                        <input type="number" name="quantite" min="1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Quantité</label>
+                        <input type="number" name="quantite" min="1" value="1" required 
+                               class="w-full border border-slate-200 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Prix Unitaire (€)</label>
-                        <input type="number" name="prix" min="0" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prix Unitaire (€)</label>
+                        <input type="number" name="prix" min="0" step="0.01" required 
+                               class="w-full border border-slate-200 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-                    <div>
-                        <button type="button" class="remove-row mt-6 text-red-600 hover:text-red-800">Supprimer</button>
+                    <div class="md:col-span-1 text-center">
+                        <button type="button" class="remove-row text-rose-500 hover:text-rose-700 font-medium p-2.5 rounded-xl hover:bg-rose-50 transition w-full flex justify-center items-center" title="Supprimer la ligne">
+                            🗑️
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <button type="button" id="addRow" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">➕ Ajouter une ligne</button>
+            <button type="button" id="addRow" class="mt-4 flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm">
+                ➕ Ajouter un article
+            </button>
             
-            <div class="mt-6">
-                <p class="text-lg font-semibold">Total: <span id="total">0.00 €</span></p>
+            <div class="mt-8 bg-slate-900 text-white p-6 rounded-2xl md:w-1/2 ml-auto space-y-3 shadow-md">
+                <div class="flex justify-between text-sm text-slate-400">
+                    <span>Total Hors Taxes (HT) :</span>
+                    <span id="totalHT">0.00 €</span>
+                </div>
+                <div class="flex justify-between text-sm text-slate-400 border-b border-slate-800 pb-2">
+                    <span>Montant TVA :</span>
+                    <span id="montantTVA">0.00 €</span>
+                </div>
+                <div class="flex justify-between text-xl font-bold pt-1">
+                    <span>Total TTC :</span>
+                    <span id="totalTTC" class="text-emerald-400">0.00 €</span>
+                </div>
             </div>
             
-            <button type="submit" class="mt-6 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">📤 Générer PDF</button>
+            <div class="mt-8 border-t border-slate-100 pt-6 flex justify-end">
+                <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-bold transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+                    🚀 Éditer & Télécharger le PDF
+                </button>
+            </div>
         </form>
     </div>
 
     <script>
         let productMap = {};
 
-        // Générer un numéro de facture : FACT-YYYYMMDD-XXXXXX
+        // Génère un ID unique de facture formaté
         function generateInvoiceNumber() {
             const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            const datePart = `${yyyy}${mm}${dd}`;
-            const uid = Math.random().toString(16).substring(2, 8); // identifiant court
+            const datePart = today.getFullYear() + 
+                             String(today.getMonth() + 1).padStart(2, '0') + 
+                             String(today.getDate()).padStart(2, '0');
+            const uid = Math.random().toString(16).substring(2, 8).toUpperCase();
             return `FACT-${datePart}-${uid}`;
         }
 
-        // Charger les produits
+        // Récupère la liste des produits configurés depuis le serveur Flask
         async function loadProducts() {
-            const response = await fetch('/products');
-            const products = await response.json();
-            productMap = {};
-            document.querySelectorAll('.description-select').forEach(select => {
-                select.innerHTML = '<option value="">Sélectionner un produit</option>';
-                products.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.name;
-                    option.textContent = `${product.name} (${product.price.toFixed(2)} €)`;
-                    option.dataset.price = product.price;
-                    select.appendChild(option);
-                    productMap[product.name] = product.price;
+            try {
+                const response = await fetch('/products');
+                const products = await response.json();
+                productMap = {};
+                
+                document.querySelectorAll('.description-select').forEach(select => {
+                    const currentSelection = select.value;
+                    select.innerHTML = '<option value="">Sélectionner un article...</option>';
+                    
+                    products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.name;
+                        option.textContent = `${product.name} (${product.price.toFixed(2)} €)`;
+                        option.dataset.price = product.price;
+                        select.appendChild(option);
+                        productMap[product.name] = product.price;
+                    });
+                    
+                    if (currentSelection) select.value = currentSelection;
                 });
-            });
+            } catch (error) {
+                console.error("Erreur lors du chargement des articles :", error);
+            }
         }
 
-        // Ajouter une nouvelle ligne
+        // Ajoute une nouvelle ligne de produit au tableau
         document.getElementById('addRow').addEventListener('click', () => {
-            const articles = document.getElementById('articles');
+            const articlesContainer = document.getElementById('articles');
             const newRow = document.createElement('div');
-            newRow.className = 'article-row grid grid-cols-1 md:grid-cols-5 gap-4 items-center';
+            newRow.className = 'article-row grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-slate-100 relative';
             newRow.innerHTML = `
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">Description</label>
-                    <select name="description" class="mt-1 block w-full border border-gray-300 rounded-md p-2 description-select">
-                        <option value="">Sélectionner un produit</option>
+                <div class="md:col-span-5">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Désignation du produit</label>
+                    <select name="description" required class="w-full border border-slate-200 rounded-xl p-2.5 bg-white description-select focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option value="">Sélectionner un article...</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Quantité</label>
-                    <input type="number" name="quantite" min="1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Quantité</label>
+                    <input type="number" name="quantite" min="1" value="1" required class="w-full border border-slate-200 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Prix Unitaire (€)</label>
-                    <input type="number" name="prix" min="0" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prix Unitaire (€)</label>
+                    <input type="number" name="prix" min="0" step="0.01" required class="w-full border border-slate-200 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
                 </div>
-                <div>
-                    <button type="button" class="remove-row mt-6 text-red-600 hover:text-red-800">Supprimer</button>
+                <div class="md:col-span-1 text-center">
+                    <button type="button" class="remove-row text-rose-500 hover:text-rose-700 font-medium p-2.5 rounded-xl hover:bg-rose-50 transition w-full flex justify-center items-center" title="Supprimer la ligne">
+                        🗑️
+                    </button>
                 </div>
             `;
-            articles.appendChild(newRow);
+            articlesContainer.appendChild(newRow);
             loadProducts();
-            updateTotal();
+            updateTotals();
         });
 
-        // Supprimer une ligne
+        // Supprime une ligne d'article
         document.getElementById('articles').addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-row')) {
+            if (e.target.classList.contains('remove-row') || e.target.parentElement.classList.contains('remove-row')) {
                 if (document.querySelectorAll('.article-row').length > 1) {
                     e.target.closest('.article-row').remove();
-                    updateTotal();
+                    updateTotals();
+                } else {
+                    alert("Votre facture doit comporter au moins 1 article.");
                 }
             }
         });
 
-        // Auto-remplir prix
+        // Met automatiquement à jour le prix unitaire dès qu'un produit est sélectionné
         document.getElementById('articles').addEventListener('change', (e) => {
             if (e.target.classList.contains('description-select')) {
                 const row = e.target.closest('.article-row');
                 const priceInput = row.querySelector('input[name="prix"]');
-                const selected = e.target.value;
-                if (selected && productMap[selected] !== undefined) {
-                    priceInput.value = productMap[selected].toFixed(2);
+                const selectedProduct = e.target.value;
+                
+                if (selectedProduct && productMap[selectedProduct] !== undefined) {
+                    priceInput.value = productMap[selectedProduct].toFixed(2);
                 } else {
                     priceInput.value = '';
                 }
-                updateTotal();
+                updateTotals();
             }
         });
 
-        // Mise à jour total
-        function updateTotal() {
-            let total = 0;
+        // Recalcule tous les totaux en temps réel (HT, TVA, TTC)
+        function updateTotals() {
+            let totalHT = 0;
             document.querySelectorAll('.article-row').forEach(row => {
                 const qty = parseInt(row.querySelector('input[name="quantite"]').value) || 0;
                 const price = parseFloat(row.querySelector('input[name="prix"]').value) || 0;
-                total += qty * price;
+                totalHT += qty * price;
             });
-            document.getElementById('total').textContent = total.toFixed(2) + ' €';
-        }
-        document.getElementById('articles').addEventListener('input', updateTotal);
 
-        // Soumission formulaire
+            const tvaPercent = parseFloat(document.getElementById('tva').value) || 0;
+            const montantTVA = totalHT * (tvaPercent / 100);
+            const totalTTC = totalHT + montantTVA;
+
+            document.getElementById('totalHT').textContent = totalHT.toFixed(2) + ' €';
+            document.getElementById('montantTVA').textContent = montantTVA.toFixed(2) + ' €';
+            document.getElementById('totalTTC').textContent = totalTTC.toFixed(2) + ' €';
+        }
+
+        document.getElementById('articles').addEventListener('input', updateTotals);
+        document.getElementById('tva').addEventListener('input', updateTotals);
+
+        // Envoi des données en JSON au serveur Flask et téléchargement sécurisé du PDF
         document.getElementById('factureForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const articles = [];
+            let isValid = true;
+
             document.querySelectorAll('.article-row').forEach(row => {
-                articles.push({
-                    description: row.querySelector('select[name="description"]').value,
-                    quantite: parseInt(row.querySelector('input[name="quantite"]').value),
-                    prix: parseFloat(row.querySelector('input[name="prix"]').value)
-                });
+                const desc = row.querySelector('.description-select').value;
+                const qty = parseInt(row.querySelector('input[name="quantite"]').value);
+                const price = parseFloat(row.querySelector('input[name="prix"]').value);
+
+                if(!desc) {
+                    isValid = false;
+                    return;
+                }
+
+                articles.push({ description: desc, quantite: qty, prix: price });
             });
+
+            if (!isValid) {
+                alert("Veuillez sélectionner un produit valide pour chaque ligne.");
+                return;
+            }
+
             const data = {
                 client: document.getElementById('client').value,
                 adresse: document.getElementById('adresse').value,
                 date: document.getElementById('date').value,
                 numero: document.getElementById('numero').value,
-                tva: parseFloat(document.getElementById('tva').value) / 100,
-                articles
+                tva: parseFloat(document.getElementById('tva').value),
+                articles: articles
             };
-            const response = await fetch('/generate-pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
 
-            // Nom dynamique du fichier
-            const numeroFacture = document.getElementById('numero').value || "FACTURE";
-            const client = document.getElementById('client').value.replace(/\s+/g, "_") || "CLIENT";
+            try {
+                const response = await fetch('/generate-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${numeroFacture}_${client}.pdf`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+                if (!response.ok) throw new Error("Échec de génération du fichier PDF.");
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const invoiceNum = document.getElementById('numero').value;
+                const clientName = document.getElementById('client').value.trim().replace(/\s+/g, "_");
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `${invoiceNum}_${clientName}.pdf`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                
+                document.body.removeChild(downloadLink);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert("Une erreur est survenue lors du téléchargement : " + error.message);
+            }
         });
 
-        // Initialisation
+        // Démarrage et initialisation de la page
         document.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().split("T")[0];
             document.getElementById("date").value = today;
