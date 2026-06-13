@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Facture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-6">🧾 Générateur de Facture</h1>
+        <a href="/admin" class="text-blue-600 hover:underline mb-4 inline-block">Accéder à l'espace admin</a>
+        
+        <form id="factureForm" class="bg-white p-6 rounded-lg shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="client" class="block text-sm font-medium text-gray-700">Nom du client</label>
+                    <input type="text" id="client" name="client" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div>
+                    <label for="adresse" class="block text-sm font-medium text-gray-700">Adresse</label>
+                    <input type="text" id="adresse" name="adresse" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                    <input type="date" id="date" name="date" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div>
+                    <label for="numero" class="block text-sm font-medium text-gray-700">Numéro de facture</label>
+                    <input type="text" id="numero" name="numero" readonly 
+                           class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-gray-100">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="tva" class="block text-sm font-medium text-gray-700">TVA (%)</label>
+                <input type="number" id="tva" name="tva" min="0" step="0.1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+            </div>
+            
+            <h2 class="text-xl font-semibold mb-4">🛒 Produits / Services</h2>
+            <div id="articles" class="space-y-4">
+                <div class="article-row grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <select name="description" class="mt-1 block w-full border border-gray-300 rounded-md p-2 description-select">
+                            <option value="">Sélectionner un produit</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantité</label>
+                        <input type="number" name="quantite" min="1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Prix Unitaire (€)</label>
+                        <input type="number" name="prix" min="0" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    </div>
+                    <div>
+                        <button type="button" class="remove-row mt-6 text-red-600 hover:text-red-800">Supprimer</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" id="addRow" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">➕ Ajouter une ligne</button>
+            
+            <div class="mt-6">
+                <p class="text-lg font-semibold">Total: <span id="total">0.00 €</span></p>
+            </div>
+            
+            <button type="submit" class="mt-6 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">📤 Générer PDF</button>
+        </form>
+    </div>
+
+    <script>
+        let productMap = {};
+
+        // Générer un numéro de facture : FACT-YYYYMMDD-XXXXXX
+        function generateInvoiceNumber() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const datePart = `${yyyy}${mm}${dd}`;
+            const uid = Math.random().toString(16).substring(2, 8); // identifiant court
+            return `FACT-${datePart}-${uid}`;
+        }
+
+        // Charger les produits
+        async function loadProducts() {
+            const response = await fetch('/products');
+            const products = await response.json();
+            productMap = {};
+            document.querySelectorAll('.description-select').forEach(select => {
+                select.innerHTML = '<option value="">Sélectionner un produit</option>';
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.name;
+                    option.textContent = `${product.name} (${product.price.toFixed(2)} €)`;
+                    option.dataset.price = product.price;
+                    select.appendChild(option);
+                    productMap[product.name] = product.price;
+                });
+            });
+        }
+
+        // Ajouter une nouvelle ligne
+        document.getElementById('addRow').addEventListener('click', () => {
+            const articles = document.getElementById('articles');
+            const newRow = document.createElement('div');
+            newRow.className = 'article-row grid grid-cols-1 md:grid-cols-5 gap-4 items-center';
+            newRow.innerHTML = `
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <select name="description" class="mt-1 block w-full border border-gray-300 rounded-md p-2 description-select">
+                        <option value="">Sélectionner un produit</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Quantité</label>
+                    <input type="number" name="quantite" min="1" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Prix Unitaire (€)</label>
+                    <input type="number" name="prix" min="0" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div>
+                    <button type="button" class="remove-row mt-6 text-red-600 hover:text-red-800">Supprimer</button>
+                </div>
+            `;
+            articles.appendChild(newRow);
+            loadProducts();
+            updateTotal();
+        });
+
+        // Supprimer une ligne
+        document.getElementById('articles').addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row')) {
+                if (document.querySelectorAll('.article-row').length > 1) {
+                    e.target.closest('.article-row').remove();
+                    updateTotal();
+                }
+            }
+        });
+
+        // Auto-remplir prix
+        document.getElementById('articles').addEventListener('change', (e) => {
+            if (e.target.classList.contains('description-select')) {
+                const row = e.target.closest('.article-row');
+                const priceInput = row.querySelector('input[name="prix"]');
+                const selected = e.target.value;
+                if (selected && productMap[selected] !== undefined) {
+                    priceInput.value = productMap[selected].toFixed(2);
+                } else {
+                    priceInput.value = '';
+                }
+                updateTotal();
+            }
+        });
+
+        // Mise à jour total
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('.article-row').forEach(row => {
+                const qty = parseInt(row.querySelector('input[name="quantite"]').value) || 0;
+                const price = parseFloat(row.querySelector('input[name="prix"]').value) || 0;
+                total += qty * price;
+            });
+            document.getElementById('total').textContent = total.toFixed(2) + ' €';
+        }
+        document.getElementById('articles').addEventListener('input', updateTotal);
+
+        // Soumission formulaire
+        document.getElementById('factureForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const articles = [];
+            document.querySelectorAll('.article-row').forEach(row => {
+                articles.push({
+                    description: row.querySelector('select[name="description"]').value,
+                    quantite: parseInt(row.querySelector('input[name="quantite"]').value),
+                    prix: parseFloat(row.querySelector('input[name="prix"]').value)
+                });
+            });
+            const data = {
+                client: document.getElementById('client').value,
+                adresse: document.getElementById('adresse').value,
+                date: document.getElementById('date').value,
+                numero: document.getElementById('numero').value,
+                tva: parseFloat(document.getElementById('tva').value) / 100,
+                articles
+            };
+            const response = await fetch('/generate-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Nom dynamique du fichier
+            const numeroFacture = document.getElementById('numero').value || "FACTURE";
+            const client = document.getElementById('client').value.replace(/\s+/g, "_") || "CLIENT";
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${numeroFacture}_${client}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+
+        // Initialisation
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("date").value = today;
+            document.getElementById("numero").value = generateInvoiceNumber();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
